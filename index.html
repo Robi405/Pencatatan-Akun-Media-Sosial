@@ -1,21 +1,31 @@
-<!-- 
-  UI MODERN & PROFESIONAL (FULLY RESPONSIVE)
-  Sistem Login Terintegrasi Google Sheets
--->
-<div id="sosmed-app-wrapper" class="antialiased text-slate-800">
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <!-- TAG PALING PENTING UNTUK TAMPILAN MOBILE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4f46e5">
+  <title>VaultX - Credential Manager</title>
+  
   <!-- Load Tailwind CSS, FontAwesome, & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    #sosmed-app-wrapper {
-      font-family: 'Inter', sans-serif;
+    body {
       background-color: #f8fafc;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #sosmed-app-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #f8fafc;
       position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     .app-tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
     .app-tab-content.active { display: block; opacity: 1; animation: slideUp 0.4s ease-out forwards; }
@@ -42,15 +52,18 @@
     .loader-spinner.dark { border-color: rgba(0,0,0,0.1); border-top-color: #4f46e5; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Custom Scrollbar for tables */
+    /* Custom Scrollbar for mobile tables */
+    .custom-scroll {
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling di iOS */
+    }
     .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Inputs */
+    /* Inputs Mobile Friendly (Ukuran font min 16px mencegah auto-zoom di iOS) */
     .input-modern {
-      @apply bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 transition-shadow;
+      @apply bg-white border border-slate-300 text-slate-900 text-base md:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 md:p-2.5 transition-shadow;
     }
     
     /* Modal responsive styling */
@@ -64,71 +77,72 @@
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-content {
-      background: white; border-radius: 16px; width: 100%; max-width: 500px;
-      padding: 1.25rem; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: white; border-radius: 20px; width: 100%; max-width: 500px;
+      padding: 1.5rem; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       max-height: 90vh; overflow-y: auto;
     }
     @media (min-width: 640px) {
-      .modal-content { padding: 2rem; }
+      .modal-content { padding: 2rem; border-radius: 16px; }
     }
     .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
   </style>
+</head>
+<body>
 
+<div id="sosmed-app-wrapper">
   <!-- ================= LAYAR LOGIN ================= -->
-  <div id="login-view" class="flex flex-col items-center justify-center min-h-[85vh] py-10 sm:py-12 px-4 relative z-40 bg-slate-50 overflow-hidden">
+  <div id="login-view" class="flex flex-col items-center justify-center min-h-[100dvh] py-8 px-4 relative z-40 bg-slate-50 overflow-hidden">
     <!-- Dekorasi Background Abstrak -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-      <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]"></div>
-      <div class="absolute bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-blue-600/5 blur-[100px]"></div>
+      <div class="absolute -top-[10%] -left-[10%] w-[70%] h-[50%] rounded-full bg-indigo-600/5 blur-[100px]"></div>
+      <div class="absolute bottom-[0%] -right-[10%] w-[80%] h-[60%] rounded-full bg-blue-600/5 blur-[100px]"></div>
     </div>
 
-    <!-- Kartu Login Glassmorphism -->
-    <div class="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-6 sm:p-10 relative z-10 transform transition-all">
-      <div class="text-center mb-8 sm:mb-10">
-        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/30 mb-4 sm:mb-5">
-          <i class="fas fa-shield-halved text-2xl sm:text-3xl"></i>
+    <!-- Kartu Login -->
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[24px] shadow-lg border border-white p-8 relative z-10">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/30 mb-5">
+          <i class="fas fa-shield-halved text-3xl"></i>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Vault<span class="text-indigo-600 font-black">X</span></h2>
-        <p class="text-slate-500 text-xs sm:text-sm mt-1 sm:mt-2">Akses pengelola kredensial aman Anda</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Vault<span class="text-indigo-600 font-black">X</span></h2>
+        <p class="text-slate-500 text-sm mt-1">Akses kredensial aman Anda</p>
       </div>
 
-      <div id="login-alert" class="hidden mb-5 p-3 sm:p-4 rounded-xl text-sm text-center font-medium border"></div>
+      <div id="login-alert" class="hidden mb-5 p-3 rounded-xl text-sm text-center font-medium border"></div>
 
       <form id="form-login" onsubmit="handleLogin(event)">
-        <div class="space-y-4 sm:space-y-6">
+        <div class="space-y-5">
           <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">Username</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
                 <i class="fas fa-user"></i>
               </div>
-              <input type="text" id="loginUsername" required class="w-full pl-10 sm:pl-11 pr-4 py-3 sm:py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="Masukkan username admin">
+              <input type="text" id="loginUsername" required class="w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-base md:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none" placeholder="Masukkan username admin">
             </div>
           </div>
           <div>
-            <div class="flex justify-between items-center mb-1.5 sm:mb-2">
-              <label class="block text-sm font-semibold text-slate-700">Password</label>
-            </div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
                 <i class="fas fa-lock"></i>
               </div>
-              <input type="password" id="loginPassword" required class="w-full pl-10 sm:pl-11 pr-10 sm:pr-11 py-3 sm:py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="••••••••">
-              <div class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600 transition-colors" onclick="togglePasswordVisibility('loginPassword', 'iconLoginToggle')">
+              <input type="password" id="loginPassword" required class="w-full pl-11 pr-11 py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-base md:text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none" placeholder="••••••••">
+              <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600 transition-colors" onclick="togglePasswordVisibility('loginPassword', 'iconLoginToggle')">
                 <i id="iconLoginToggle" class="fas fa-eye"></i>
               </div>
             </div>
           </div>
-          <button type="submit" id="btn-login" class="w-full mt-2 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-600/20 font-semibold rounded-xl text-sm px-5 py-3 sm:py-4 text-center transition-all duration-300 shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 flex justify-center items-center">
+          <button type="submit" id="btn-login" class="w-full mt-4 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-600/20 font-semibold rounded-xl text-base px-5 py-4 text-center transition-all shadow-md flex justify-center items-center">
             Masuk ke Sistem <i class="fas fa-arrow-right ml-2 opacity-80"></i>
           </button>
         </div>
       </form>
       
-      <div class="mt-6 sm:mt-8 text-center flex flex-col items-center justify-center gap-3">
-        <div class="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-slate-400">
-          <i class="fas fa-lock text-slate-300"></i> Terenkripsi & Terhubung ke Google Sheets
+      <div class="mt-8 text-center flex flex-col items-center justify-center gap-3">
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+          <i class="fas fa-lock text-slate-300"></i> Terenkripsi & Terhubung ke Sheets
         </div>
       </div>
     </div>
@@ -136,91 +150,78 @@
 
 
   <!-- ================= LAYAR APLIKASI UTAMA ================= -->
-  <div id="app-view" class="hidden min-h-[600px] flex flex-col relative z-10">
+  <div id="app-view" class="hidden flex-1 flex flex-col relative z-10 bg-slate-50 min-h-[100dvh]">
     
     <!-- Navbar Modern & Mobile Friendly -->
-    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center z-20 shadow-sm">
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md">
-          <i class="fas fa-shield-halved text-base sm:text-lg"></i>
+    <nav class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center z-20 shadow-sm sticky top-0">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shrink-0">
+          <i class="fas fa-shield-halved text-base"></i>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Vault<span class="text-indigo-600 font-black">X</span></h1>
-          <p class="text-[9px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wider hidden sm:block">Credential Manager</p>
         </div>
       </div>
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <button onclick="openConfigModal()" class="text-xs sm:text-sm font-medium text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-200 py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 sm:gap-2" title="Pengaturan URL Script">
-          <i class="fas fa-cog"></i> <span class="hidden md:inline">URL Script</span>
+      <div class="flex items-center gap-2">
+        <button onclick="openConfigModal()" class="w-9 h-9 sm:w-auto sm:px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors shadow-sm" title="URL Script">
+          <i class="fas fa-cog"></i> <span class="hidden sm:inline ml-2 text-sm font-medium">URL</span>
         </button>
-        <button onclick="openProfileModal()" class="text-xs sm:text-sm font-medium text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-200 py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 sm:gap-2" title="Pengaturan Akun">
-          <i class="fas fa-user-cog"></i> <span class="hidden md:inline">Akun</span>
+        <button onclick="openProfileModal()" class="w-9 h-9 sm:w-auto sm:px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors shadow-sm" title="Akun">
+          <i class="fas fa-user-cog"></i> <span class="hidden sm:inline ml-2 text-sm font-medium">Akun</span>
         </button>
-        <button onclick="handleLogout()" class="text-xs sm:text-sm font-medium text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 sm:gap-2" title="Keluar dari Sistem">
-          <i class="fas fa-sign-out-alt"></i> <span class="hidden md:inline">Keluar</span>
+        <button onclick="handleLogout()" class="w-9 h-9 sm:w-auto sm:px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors shadow-sm" title="Keluar">
+          <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline ml-2 text-sm font-medium">Keluar</span>
         </button>
       </div>
     </nav>
 
-    <!-- Navigasi Tab Pill -->
-    <div class="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
-      <div class="flex space-x-1 sm:space-x-2 p-1 bg-slate-100/80 rounded-xl overflow-x-auto custom-scroll border border-slate-200">
-        <button onclick="switchTab('list')" id="btn-list" class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
-          <i class="fas fa-server"></i> Kelola Data
-        </button>
-        <button onclick="switchTab('input')" id="btn-input" class="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
-          <i class="fas fa-plus-circle"></i> Input Baru
-        </button>
-      </div>
-    </div>
-
     <!-- Area Konten Utama -->
-    <div class="flex-1 p-4 sm:p-6 relative">
+    <div class="flex-1 p-4 sm:p-6 w-full max-w-6xl mx-auto flex flex-col relative pb-24">
       
       <!-- Notifikasi Alert -->
-      <div id="app-alert" class="hidden mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl text-xs sm:text-sm font-medium shadow-sm flex items-center border"></div>
+      <div id="app-alert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium shadow-sm flex items-center border"></div>
 
       <!-- 1. INPUT AKUN BARU TAB -->
       <div id="tab-input" class="app-tab-content">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-8">
-          <div class="mb-5 sm:mb-6 pb-4 sm:pb-6 border-b border-slate-100">
-            <h3 class="text-lg sm:text-xl font-bold text-slate-900">Registrasi Akun Baru</h3>
-            <p class="text-xs sm:text-sm text-slate-500">Simpan kredensial platform baru ke dalam sistem.</p>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-8">
+          <div class="mb-5 pb-4 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Registrasi Akun Baru</h3>
+            <p class="text-sm text-slate-500 mt-1">Simpan kredensial platform baru.</p>
           </div>
           
           <form id="form-akun" onsubmit="submitForm(event, 'add')">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5">
+            <div class="space-y-4">
               
-              <div class="col-span-1 md:col-span-2">
-                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Platform / Jenis Akun <span class="text-red-500">*</span></label>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Platform / Jenis Akun <span class="text-red-500">*</span></label>
                 <select id="inputJenisAkun" required onchange="checkCustomPlatform('inputJenisAkun', 'containerManual')" class="input-modern cursor-pointer mb-2">
                   <option value="" disabled selected>-- Pilih Platform --</option>
                 </select>
                 
                 <div id="containerManual" class="hidden relative animate-[fadeIn_0.3s_ease]">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-keyboard"></i></div>
-                  <input type="text" id="inputJenisAkunManual" class="input-modern pl-10 bg-indigo-50/50 border-indigo-200 focus:border-indigo-500" placeholder="Ketik nama platform (contoh: Discord)">
+                  <input type="text" id="inputJenisAkunManual" class="input-modern pl-10 bg-indigo-50/50 border-indigo-200 focus:border-indigo-500" placeholder="Ketik nama platform manual">
                 </div>
               </div>
 
-              <div class="col-span-1">
-                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Username / Nama Pemilik <span class="text-red-500">*</span></label>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username / Nama Pemilik <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-at"></i></div>
                   <input type="text" id="inputNama" required class="input-modern pl-10" placeholder="@username">
                 </div>
               </div>
 
-              <div class="col-span-1">
-                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Email Terdaftar <span class="text-red-500">*</span></label>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email Terdaftar <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-envelope"></i></div>
                   <input type="text" id="inputEmail" required class="input-modern pl-10" placeholder="nama@email.com">
                 </div>
               </div>
 
-              <div class="col-span-1 md:col-span-2">
-                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi (Password) <span class="text-red-500">*</span></label>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi (Password) <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-key"></i></div>
                   <input type="password" id="inputPassword" required class="input-modern pl-10 pr-10" placeholder="••••••••">
@@ -232,9 +233,9 @@
 
             </div>
 
-            <div class="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-slate-100 flex justify-end">
-              <button type="submit" id="btn-submit" class="w-full md:w-auto text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 font-semibold rounded-lg text-sm px-6 py-2.5 shadow-sm transition-all flex items-center justify-center">
-                <i class="fas fa-cloud-arrow-up mr-2"></i> Simpan Kredensial
+            <div class="mt-8">
+              <button type="submit" id="btn-submit" class="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-semibold rounded-xl text-base px-6 py-3.5 shadow-sm transition-all flex items-center justify-center">
+                <i class="fas fa-cloud-arrow-up mr-2"></i> Simpan Data
               </button>
             </div>
           </form>
@@ -243,43 +244,42 @@
 
       <!-- 2. DAFTAR AKUN TAB -->
       <div id="tab-list" class="app-tab-content">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           
-          <!-- Toolbars Responsif -->
-          <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-slate-900">Manajemen Database</h3>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row w-full lg:w-auto gap-2 sm:gap-3">
-               <select id="filterPlatformList" onchange="renderTable()" class="input-modern w-full sm:w-40 py-2 cursor-pointer shadow-sm text-xs sm:text-sm">
+          <!-- Toolbars Mobile Friendly -->
+          <div class="p-4 border-b border-slate-200 bg-slate-50/50">
+            <h3 class="text-lg font-bold text-slate-900 mb-3">Database Kredensial</h3>
+            <div class="flex flex-col gap-3">
+               <select id="filterPlatformList" onchange="renderTable()" class="input-modern cursor-pointer shadow-sm w-full">
                 <option value="Semua">Semua Platform</option>
               </select>
-              <div class="relative w-full sm:w-56">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-search text-xs sm:text-sm"></i></div>
-                <input type="text" id="filterNameList" onkeyup="renderTable()" class="input-modern pl-9 sm:pl-10 py-2 shadow-sm text-xs sm:text-sm" placeholder="Cari akun...">
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-search"></i></div>
+                  <input type="text" id="filterNameList" onkeyup="renderTable()" class="input-modern pl-10 shadow-sm" placeholder="Cari akun...">
+                </div>
+                <button onclick="fetchData()" class="w-12 h-12 md:w-auto md:px-4 bg-white text-slate-600 rounded-xl border border-slate-300 shadow-sm flex items-center justify-center shrink-0">
+                  <i class="fas fa-arrows-rotate"></i>
+                </button>
               </div>
-              <button onclick="fetchData()" class="text-xs sm:text-sm font-medium bg-white hover:bg-slate-50 text-slate-600 py-2 px-3 sm:px-4 rounded-lg border border-slate-300 shadow-sm transition flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fas fa-arrows-rotate"></i> Refresh
-              </button>
             </div>
           </div>
 
-          <!-- Table Container (Horizontal Scroll di Layar HP) -->
-          <div class="overflow-x-auto custom-scroll">
-            <table class="w-full text-sm text-left whitespace-nowrap">
-              <thead class="text-[10px] sm:text-xs text-slate-500 uppercase bg-slate-50 font-semibold border-b border-slate-200">
+          <!-- Table Container (Force Horizontal Scroll) -->
+          <div class="overflow-x-auto custom-scroll bg-white">
+            <table class="w-full text-left whitespace-nowrap min-w-[700px]">
+              <thead class="text-xs text-slate-500 uppercase bg-slate-100/50 font-bold border-b border-slate-200 tracking-wider">
                 <tr>
-                  <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Platform</th>
-                  <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Username</th>
-                  <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Email</th>
-                  <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Password</th>
-                  <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 text-right">Aksi</th>
+                  <th scope="col" class="px-5 py-4">Platform</th>
+                  <th scope="col" class="px-5 py-4">Username</th>
+                  <th scope="col" class="px-5 py-4">Email</th>
+                  <th scope="col" class="px-5 py-4">Password</th>
+                  <th scope="col" class="px-5 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody id="table-body" class="divide-y divide-slate-100">
+              <tbody id="table-body" class="divide-y divide-slate-100 text-sm">
                 <tr>
-                  <td colspan="5" class="px-4 sm:px-6 py-10 sm:py-12 text-center text-slate-500 text-sm">
+                  <td colspan="5" class="px-5 py-16 text-center text-slate-500">
                     <div class="loader-spinner dark mb-3"></div><br>Menghubungkan ke server...
                   </td>
                 </tr>
@@ -290,14 +290,28 @@
       </div>
 
     </div>
+
+    <!-- Navigasi Bawah (Bottom Navigation khusus Mobile/App-like) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)] px-2">
+      <div class="flex max-w-md mx-auto h-16 relative">
+        <button onclick="switchTab('list')" id="btn-list" class="flex-1 flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold transition-all relative">
+          <i class="fas fa-server text-xl"></i>
+          <span class="text-[10px] uppercase tracking-wide">Kelola</span>
+        </button>
+        <button onclick="switchTab('input')" id="btn-input" class="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-indigo-500 font-semibold transition-all">
+          <i class="fas fa-plus-circle text-xl"></i>
+          <span class="text-[10px] uppercase tracking-wide">Tambah</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL EDIT AKUN -->
   <div id="modal-edit" class="modal-overlay">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-slate-100">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900"><i class="fas fa-pen-to-square text-indigo-500 mr-2"></i> Update Kredensial</h3>
-        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-pen-to-square text-indigo-500 mr-2"></i> Update Data</h3>
+        <button onclick="closeEditModal()" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -305,43 +319,37 @@
       <form id="form-edit" onsubmit="submitForm(event, 'edit')">
         <input type="hidden" id="editRowIndex">
         
-        <div class="space-y-3 sm:space-y-4">
+        <div class="space-y-4">
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Jenis Akun</label>
-            <select id="editJenisAkun" onchange="checkCustomPlatform('editJenisAkun', 'editContainerManual')" required class="input-modern mb-2 cursor-pointer text-xs sm:text-sm">
-              <!-- Opsi dinamis -->
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Akun</label>
+            <select id="editJenisAkun" onchange="checkCustomPlatform('editJenisAkun', 'editContainerManual')" required class="input-modern mb-2">
             </select>
             <div id="editContainerManual" class="hidden relative">
-               <input type="text" id="editJenisAkunManual" class="input-modern bg-indigo-50/50 border-indigo-200 text-xs sm:text-sm" placeholder="Ketik nama platform...">
+               <input type="text" id="editJenisAkunManual" class="input-modern bg-indigo-50/50 border-indigo-200" placeholder="Ketik nama platform...">
             </div>
           </div>
-
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Username / Nama</label>
-            <input type="text" id="editNama" required class="input-modern text-xs sm:text-sm">
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Username / Nama</label>
+            <input type="text" id="editNama" required class="input-modern">
           </div>
-
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Email</label>
-            <input type="text" id="editEmail" required class="input-modern text-xs sm:text-sm">
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+            <input type="text" id="editEmail" required class="input-modern">
           </div>
-
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Password</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
             <div class="relative">
-               <input type="password" id="editPassword" required class="input-modern pr-10 text-xs sm:text-sm">
-               <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600" onclick="togglePasswordVisibility('editPassword', 'iconToggleEdit')">
+               <input type="password" id="editPassword" required class="input-modern pr-10">
+               <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400" onclick="togglePasswordVisibility('editPassword', 'iconToggleEdit')">
                   <i id="iconToggleEdit" class="fas fa-eye"></i>
                </div>
             </div>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 sm:gap-3 mt-6 sm:mt-8 pt-4 sm:pt-5 border-t border-slate-100">
-          <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
-          <button type="submit" id="btn-submit-edit" class="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
-            Simpan Perubahan
-          </button>
+        <div class="flex gap-3 mt-8">
+          <button type="button" onclick="closeEditModal()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+          <button type="submit" id="btn-submit-edit" class="flex-1 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl">Simpan</button>
         </div>
       </form>
     </div>
@@ -350,9 +358,9 @@
   <!-- MODAL KONFIGURASI URL -->
   <div id="modal-config" class="modal-overlay">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-slate-100">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900"><i class="fas fa-link text-indigo-500 mr-2"></i> Pengaturan Database</h3>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-link text-indigo-500 mr-2"></i> Pengaturan Database</h3>
+        <button onclick="closeConfigModal()" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -360,17 +368,15 @@
       <form id="form-config" onsubmit="saveConfigURL(event)">
         <div class="space-y-4">
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">URL Web App (Google Apps Script)</label>
-            <textarea id="inputScriptUrl" required rows="4" class="input-modern resize-none text-[10px] sm:text-xs font-mono break-all" placeholder="https://script.google.com/macros/s/.../exec"></textarea>
-            <p class="text-[10px] sm:text-xs text-slate-500 mt-2 leading-relaxed"><i class="fas fa-info-circle text-indigo-500"></i> Masukkan URL Apps Script Anda di sini. URL ini akan disimpan secara otomatis di memori browser perangkat ini (Local Storage).</p>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">URL Google Apps Script</label>
+            <textarea id="inputScriptUrl" required rows="4" class="input-modern resize-none text-xs font-mono break-all leading-relaxed" placeholder="https://script.google.com/macros/s/.../exec"></textarea>
+            <p class="text-[11px] text-slate-500 mt-2"><i class="fas fa-info-circle text-indigo-500"></i> Paste URL Web App Anda disini untuk menghubungkan ke Spreadsheet.</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 sm:gap-3 mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-slate-100">
-          <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
-          <button type="submit" id="btn-submit-config" class="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
-            <i class="fas fa-save mr-2"></i> Simpan URL
-          </button>
+        <div class="flex gap-3 mt-6">
+          <button type="button" onclick="closeConfigModal()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+          <button type="submit" id="btn-submit-config" class="flex-1 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl">Simpan</button>
         </div>
       </form>
     </div>
@@ -379,39 +385,34 @@
   <!-- MODAL PENGATURAN AKUN LOGIN -->
   <div id="modal-profile" class="modal-overlay">
     <div class="modal-content">
-      <div class="flex justify-between items-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-slate-100">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900"><i class="fas fa-user-shield text-indigo-500 mr-2"></i> Pengaturan Login</h3>
-        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-user-shield text-indigo-500 mr-2"></i> Akun Admin</h3>
+        <button onclick="closeProfileModal()" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center">
           <i class="fas fa-times"></i>
         </button>
       </div>
       
       <form id="form-profile" onsubmit="saveProfileConfig(event)">
-        <div class="space-y-3 sm:space-y-4">
-          <div class="p-2 sm:p-3 bg-blue-50 text-blue-700 rounded-lg text-[10px] sm:text-xs mb-2">
-            <i class="fas fa-info-circle mr-1"></i> Data login baru akan langsung disimpan ke database. Anda akan menggunakan data ini untuk sesi login berikutnya.
-          </div>
+        <div class="space-y-4">
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Username Baru</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Username Baru</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-user"></i></div>
-              <input type="text" id="inputNewUser" required class="input-modern pl-9 sm:pl-10 text-xs sm:text-sm" placeholder="Ketik username baru">
+              <input type="text" id="inputNewUser" required class="input-modern pl-10" placeholder="Username">
             </div>
           </div>
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Password Baru</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Password Baru</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-lock"></i></div>
-              <input type="text" id="inputNewPass" required class="input-modern pl-9 sm:pl-10 text-xs sm:text-sm" placeholder="Ketik password baru">
+              <input type="text" id="inputNewPass" required class="input-modern pl-10" placeholder="Password">
             </div>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 sm:gap-3 mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-slate-100">
-          <button type="button" onclick="closeProfileModal()" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
-          <button type="submit" id="btn-submit-profile" class="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
-            <i class="fas fa-save mr-2"></i> Update Login
-          </button>
+        <div class="flex gap-3 mt-8">
+          <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+          <button type="submit" id="btn-submit-profile" class="flex-1 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl">Update</button>
         </div>
       </form>
     </div>
@@ -419,21 +420,16 @@
 
   <script>
     // ==========================================
-    // MENGAMBIL URL DARI LOCAL STORAGE
-    // ==========================================
     let GOOGLE_SCRIPT_URL = localStorage.getItem('vaultx_script_url') || '';
-
     let accountsData = [];
     let dynamicPlatforms = ['Facebook', 'Instagram', 'Twitter/X', 'TikTok', 'LinkedIn', 'YouTube', 'Google/Gmail'];
 
-    // Cek status login saat halaman dimuat
     document.addEventListener("DOMContentLoaded", () => {
       const isLoggedIn = sessionStorage.getItem('vaultx_auth') === 'true';
       if (isLoggedIn) {
         showApp();
       } else {
         document.getElementById('login-view').classList.remove('hidden');
-        // Otomatis buka pop-up jika URL belum ter-setting
         if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.trim() === '') {
           openConfigModal();
         }
@@ -445,7 +441,7 @@
       e.preventDefault();
       
       if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.trim() === '') {
-        showLoginAlert('Silakan atur URL Google Apps Script terlebih dahulu di menu Pengaturan (Ikon Gir).', 'error');
+        showLoginAlert('Silakan atur URL Google Apps Script terlebih dahulu.', 'error');
         openConfigModal();
         return;
       }
@@ -491,9 +487,15 @@
 
     function showLoginAlert(msg, type) {
       const alertEl = document.getElementById('login-alert');
-      alertEl.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-100');
-      alertEl.classList.add('bg-red-50', 'text-red-600', 'border', 'border-red-100');
-      alertEl.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> ${msg}`;
+      alertEl.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-100', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+      
+      if (type === 'error') {
+         alertEl.classList.add('bg-red-50', 'text-red-600', 'border', 'border-red-100');
+         alertEl.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> ${msg}`;
+      } else {
+         alertEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
+         alertEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${msg}`;
+      }
     }
 
     function showApp() {
@@ -506,15 +508,13 @@
       switchTab('list'); 
     }
 
-    // ================= KONFIGURASI URL =================
+    // ================= KONFIGURASI =================
     function openConfigModal() {
       document.getElementById('inputScriptUrl').value = GOOGLE_SCRIPT_URL;
       document.getElementById('modal-config').classList.add('active');
     }
 
-    function closeConfigModal() {
-      document.getElementById('modal-config').classList.remove('active');
-    }
+    function closeConfigModal() { document.getElementById('modal-config').classList.remove('active'); }
 
     function saveConfigURL(e) {
       e.preventDefault();
@@ -524,24 +524,17 @@
         localStorage.setItem('vaultx_script_url', newUrl);
         GOOGLE_SCRIPT_URL = newUrl;
         closeConfigModal();
-        
-        const alertEl = document.getElementById('login-alert');
-        alertEl.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-100');
-        alertEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
-        alertEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> URL berhasil disimpan! Silakan login.`;
+        showLoginAlert('URL berhasil disimpan! Silakan login.', 'success');
       }
     }
 
-    // ================= PENGATURAN AKUN LOGIN =================
     function openProfileModal() {
       document.getElementById('inputNewUser').value = sessionStorage.getItem('vaultx_auth_user') || '';
       document.getElementById('inputNewPass').value = '';
       document.getElementById('modal-profile').classList.add('active');
     }
 
-    function closeProfileModal() {
-      document.getElementById('modal-profile').classList.remove('active');
-    }
+    function closeProfileModal() { document.getElementById('modal-profile').classList.remove('active'); }
 
     function saveProfileConfig(e) {
       e.preventDefault();
@@ -557,12 +550,7 @@
       fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'change_auth',
-          oldUsername: oldU,
-          newUsername: newU,
-          newPassword: newP
-        })
+        body: JSON.stringify({ action: 'change_auth', oldUsername: oldU, newUsername: newU, newPassword: newP })
       })
       .then(res => res.json())
       .then(data => {
@@ -570,19 +558,13 @@
           showAlert('Kredensial login berhasil diperbarui!', 'success');
           sessionStorage.setItem('vaultx_auth_user', newU); 
           closeProfileModal();
-        } else {
-          showAlert('Gagal: ' + data.message, 'error');
-        }
+        } else { showAlert('Gagal: ' + data.message, 'error'); }
       })
       .catch(err => showAlert('Kesalahan Jaringan.', 'error'))
-      .finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      });
+      .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
     }
 
-    // ================= UI & LOGIC APLIKASI =================
-
+    // ================= UI & LOGIC =================
     function populatePlatformDropdowns() {
       const htmlOptions = dynamicPlatforms.map(p => `<option value="${p}">${p}</option>`).join('');
       const baseFilter = `<option value="Semua">Semua Platform</option>` + htmlOptions;
@@ -608,20 +590,17 @@
     }
 
     function switchTab(tabId) {
-      document.querySelectorAll('.app-tab-content').forEach(el => {
-        el.classList.remove('active');
-      });
+      document.querySelectorAll('.app-tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('#btn-input, #btn-list').forEach(el => {
-        el.className = "flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2";
+        el.className = "flex-1 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-indigo-500 font-semibold transition-all";
       });
 
       document.getElementById('tab-' + tabId).classList.add('active');
       const activeBtn = document.getElementById('btn-' + tabId);
-      activeBtn.className = "flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-lg text-indigo-700 bg-white shadow-sm border border-slate-200 transition-all whitespace-nowrap flex items-center justify-center gap-2";
+      activeBtn.className = "flex-1 flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold transition-all relative";
 
-      if(tabId === 'list' && accountsData.length === 0) {
-        fetchData();
-      }
+      if(tabId === 'list' && accountsData.length === 0) fetchData();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showAlert(message, type) {
@@ -630,10 +609,10 @@
       
       if(type === 'success') {
         alertEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
-        alertEl.innerHTML = `<div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-2 sm:mr-3"><i class="fas fa-check text-emerald-600 text-xs sm:text-sm"></i></div> ${message}`;
+        alertEl.innerHTML = `<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3 shrink-0"><i class="fas fa-check text-emerald-600 text-sm"></i></div> <div>${message}</div>`;
       } else {
         alertEl.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
-        alertEl.innerHTML = `<div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-100 flex items-center justify-center mr-2 sm:mr-3"><i class="fas fa-exclamation-triangle text-red-600 text-xs sm:text-sm"></i></div> ${message}`;
+        alertEl.innerHTML = `<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3 shrink-0"><i class="fas fa-exclamation-triangle text-red-600 text-sm"></i></div> <div>${message}</div>`;
       }
       setTimeout(() => alertEl.classList.add('hidden'), 4000);
     }
@@ -653,7 +632,6 @@
     function openEditModal(rowIndex) {
       const account = accountsData.find(a => a.rowIndex === rowIndex);
       if(!account) return;
-      
       document.getElementById('editRowIndex').value = account.rowIndex;
       document.getElementById('editNama').value = account['Nama Pemilik'];
       document.getElementById('editEmail').value = account['Email'];
@@ -670,17 +648,14 @@
       }
       document.getElementById('modal-edit').classList.add('active');
     }
-
     function closeEditModal() { document.getElementById('modal-edit').classList.remove('active'); }
 
-    // ================= FUNGSI SALIN DATA =================
     function copyData(rowIndex, field, btnId) {
       const account = accountsData.find(a => a.rowIndex === rowIndex);
       if(!account) return;
-      const textToCopy = account[field] || '';
-
+      
       const tempInput = document.createElement('textarea');
-      tempInput.value = textToCopy;
+      tempInput.value = account[field] || '';
       document.body.appendChild(tempInput);
       tempInput.select();
       document.execCommand('copy');
@@ -694,8 +669,7 @@
       }
     }
 
-    // ================= FETCH & SUBMIT DATA =================
-
+    // ================= FETCH & SUBMIT =================
     function submitForm(event, actionType) {
       event.preventDefault();
       
@@ -710,44 +684,27 @@
       let jenisAkunFinal = document.getElementById(prefixId + 'JenisAkun').value;
       if (jenisAkunFinal === 'Lainnya_Manual') jenisAkunFinal = document.getElementById(prefixId + 'JenisAkunManual').value;
 
-      payload = {
-        action: actionType,
-        jenisAkun: jenisAkunFinal,
-        namaPemilik: document.getElementById(prefixId + 'Nama').value,
-        email: document.getElementById(prefixId + 'Email').value,
-        kataSandi: document.getElementById(prefixId + 'Password').value
-      };
-
+      payload = { action: actionType, jenisAkun: jenisAkunFinal, namaPemilik: document.getElementById(prefixId + 'Nama').value, email: document.getElementById(prefixId + 'Email').value, kataSandi: document.getElementById(prefixId + 'Password').value };
       if(actionType === 'edit') payload.rowIndex = parseInt(document.getElementById('editRowIndex').value);
 
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      })
+      fetch(GOOGLE_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
       .then(res => res.json())
       .then(data => {
         if(data.status === 'success') {
           showAlert(data.message, 'success');
-          if(actionType === 'add') {
-             document.getElementById('form-akun').reset();
-             document.getElementById('containerManual').classList.add('hidden');
-          }
+          if(actionType === 'add') { document.getElementById('form-akun').reset(); document.getElementById('containerManual').classList.add('hidden'); }
           if(actionType === 'edit') closeEditModal();
           fetchData(); 
         } else showAlert(data.message, 'error');
-      })
-      .catch(err => showAlert('Kesalahan Jaringan.', 'error'))
+      }).catch(err => showAlert('Kesalahan Jaringan.', 'error'))
       .finally(() => { btnSubmit.innerHTML = originalText; btnSubmit.disabled = false; });
     }
 
     function deleteData(rowIndex) {
       if(!confirm("Yakin ingin menghapus kredensial ini secara permanen?")) return;
-      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500"><div class="loader-spinner dark mr-2"></div> Menghapus data...</td></tr>`;
+      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-5 py-10 text-center text-red-500"><div class="loader-spinner dark mr-2"></div> Menghapus data...</td></tr>`;
 
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'delete', rowIndex: rowIndex })
-      })
+      fetch(GOOGLE_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'delete', rowIndex: rowIndex }) })
       .then(res => res.json())
       .then(data => {
         if(data.status === 'success') { showAlert(data.message, 'success'); fetchData(); } 
@@ -758,26 +715,19 @@
     function fetchData() {
       if(GOOGLE_SCRIPT_URL === 'URL_GOOGLE_APPS_SCRIPT_ANDA_DISINI') return;
 
-      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500"><div class="loader-spinner dark mb-3"></div><br>Mengambil data terbaru...</td></tr>`;
+      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-5 py-16 text-center text-slate-500"><div class="loader-spinner dark mb-3"></div><br>Mengambil data...</td></tr>`;
 
       fetch(GOOGLE_SCRIPT_URL)
         .then(res => res.json())
         .then(result => {
           if(result.status === 'success') {
             accountsData = result.data || [];
-            if(result.platforms && result.platforms.length > 0) {
-               dynamicPlatforms = Array.from(new Set([...dynamicPlatforms, ...result.platforms]));
-            }
+            if(result.platforms && result.platforms.length > 0) dynamicPlatforms = Array.from(new Set([...dynamicPlatforms, ...result.platforms]));
             populatePlatformDropdowns();
             renderTable();
           } else showAlert(result.message, 'error');
-        })
-        .catch(err => {
-          document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500"><i class="fas fa-wifi text-xl mb-2 block"></i> Gagal terhubung ke server.</td></tr>`;
-        });
+        }).catch(err => { document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-5 py-10 text-center text-red-500"><i class="fas fa-wifi text-2xl mb-2 block"></i> Gagal terhubung ke server.</td></tr>`; });
     }
-
-    // ================= RENDER UI =================
 
     function getPlatformStyling(platform) {
       platform = platform.toLowerCase();
@@ -789,7 +739,7 @@
       if(platform.includes('youtube')) return { icon: 'fab fa-youtube', bg: 'bg-[#FF0000]/10', color: 'text-[#FF0000]' };
       if(platform.includes('google') || platform.includes('gmail')) return { icon: 'fab fa-google', bg: 'bg-[#EA4335]/10', color: 'text-[#EA4335]' };
       if(platform.includes('github')) return { icon: 'fab fa-github', bg: 'bg-slate-200', color: 'text-slate-800' };
-      return { icon: 'fas fa-globe', bg: 'bg-indigo-100', color: 'text-indigo-600' }; // Default
+      return { icon: 'fas fa-globe', bg: 'bg-indigo-100', color: 'text-indigo-600' };
     }
 
     function renderTable() {
@@ -805,51 +755,51 @@
       });
 
       if(filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-4 sm:px-6 py-10 text-center text-slate-500 bg-slate-50/50 text-sm">Tidak ada data yang cocok.</td></tr>`; return;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-16 text-center text-slate-500 bg-slate-50/50">Tidak ada data yang cocok.</td></tr>`; return;
       }
 
       filtered.forEach((acc, index) => {
         const style = getPlatformStyling(acc['Jenis Akun'] || '');
         tbody.innerHTML += `
           <tr class="bg-white hover:bg-slate-50/80 transition-colors group">
-            <td class="px-4 sm:px-6 py-3 sm:py-4">
+            <td class="px-5 py-4">
               <div class="flex items-center">
-                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${style.bg} ${style.color} mr-2 sm:mr-3 shrink-0"><i class="${style.icon} text-xs sm:text-sm"></i></div>
-                <span class="font-bold text-slate-800 text-xs sm:text-sm">${acc['Jenis Akun'] || '-'}</span>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center ${style.bg} ${style.color} mr-3 shrink-0"><i class="${style.icon} text-base"></i></div>
+                <span class="font-bold text-slate-800">${acc['Jenis Akun'] || '-'}</span>
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-3 sm:py-4">
-              <div class="flex items-center group/item">
-                <span class="font-medium text-slate-700 mr-2 text-xs sm:text-sm">${acc['Nama Pemilik'] || '-'}</span>
-                <button onclick="copyData(${acc.rowIndex}, 'Nama Pemilik', 'copy-user-${index}')" id="copy-user-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none sm:opacity-0 group-hover/item:opacity-100 transition-opacity" title="Salin Username">
-                  <i class="far fa-copy text-xs sm:text-sm"></i>
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-2 group/item">
+                <span class="font-medium text-slate-700">${acc['Nama Pemilik'] || '-'}</span>
+                <button onclick="copyData(${acc.rowIndex}, 'Nama Pemilik', 'copy-user-${index}')" id="copy-user-${index}" class="text-slate-400 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" title="Salin Username">
+                  <i class="far fa-copy"></i>
                 </button>
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-3 sm:py-4">
-              <div class="flex items-center group/item">
-                <span class="text-slate-500 mr-2 text-xs sm:text-sm">${acc['Email'] || '-'}</span>
-                <button onclick="copyData(${acc.rowIndex}, 'Email', 'copy-email-${index}')" id="copy-email-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none sm:opacity-0 group-hover/item:opacity-100 transition-opacity" title="Salin Email">
-                  <i class="far fa-copy text-xs sm:text-sm"></i>
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-2 group/item">
+                <span class="text-slate-600">${acc['Email'] || '-'}</span>
+                <button onclick="copyData(${acc.rowIndex}, 'Email', 'copy-email-${index}')" id="copy-email-${index}" class="text-slate-400 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" title="Salin Email">
+                  <i class="far fa-copy"></i>
                 </button>
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-3 sm:py-4">
-              <div class="flex items-center bg-slate-100 rounded-md px-1.5 sm:px-2 py-1 w-fit border border-slate-200">
-                <input type="password" value="${acc['Kata Sandi'] || ''}" readonly class="bg-transparent border-none p-0 focus:ring-0 text-xs sm:text-sm text-slate-600 w-16 sm:w-20 outline-none font-mono tracking-wider" id="pass-td-${index}">
-                <button onclick="togglePasswordVisibility('pass-td-${index}', 'icon-td-${index}')" class="ml-1 sm:ml-2 text-slate-400 hover:text-indigo-600 focus:outline-none transition">
-                  <i id="icon-td-${index}" class="fas fa-eye text-[10px] sm:text-xs"></i>
+            <td class="px-5 py-4">
+              <div class="flex items-center bg-slate-100/80 rounded-lg px-2 py-1.5 w-fit border border-slate-200">
+                <input type="password" value="${acc['Kata Sandi'] || ''}" readonly class="bg-transparent border-none p-0 focus:ring-0 text-sm text-slate-700 w-24 outline-none font-mono tracking-wider" id="pass-td-${index}">
+                <button onclick="togglePasswordVisibility('pass-td-${index}', 'icon-td-${index}')" class="ml-2 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors">
+                  <i id="icon-td-${index}" class="fas fa-eye text-sm"></i>
                 </button>
-                <div class="w-px h-3 sm:h-4 bg-slate-300 mx-1.5 sm:mx-2"></div>
-                <button onclick="copyData(${acc.rowIndex}, 'Kata Sandi', 'copy-pass-${index}')" id="copy-pass-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none transition" title="Salin Password">
-                  <i class="far fa-copy text-[10px] sm:text-xs"></i>
+                <div class="w-px h-5 bg-slate-300 mx-1"></div>
+                <button onclick="copyData(${acc.rowIndex}, 'Kata Sandi', 'copy-pass-${index}')" id="copy-pass-${index}" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors" title="Salin Password">
+                  <i class="far fa-copy text-sm"></i>
                 </button>
               </div>
             </td>
-            <td class="px-4 sm:px-6 py-3 sm:py-4 text-right">
-              <div class="flex justify-end gap-1.5 sm:gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button onclick="openEditModal(${acc.rowIndex})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Edit"><i class="fas fa-pen text-[10px] sm:text-xs"></i></button>
-                 <button onclick="deleteData(${acc.rowIndex})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus"><i class="fas fa-trash text-[10px] sm:text-xs"></i></button>
+            <td class="px-5 py-4 text-center">
+              <div class="flex justify-center gap-2">
+                 <button onclick="openEditModal(${acc.rowIndex})" class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors flex items-center justify-center shadow-sm" title="Edit"><i class="fas fa-pen text-sm"></i></button>
+                 <button onclick="deleteData(${acc.rowIndex})" class="w-9 h-9 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center shadow-sm" title="Hapus"><i class="fas fa-trash text-sm"></i></button>
               </div>
             </td>
           </tr>
@@ -858,3 +808,5 @@
     }
   </script>
 </div>
+</body>
+</html>
