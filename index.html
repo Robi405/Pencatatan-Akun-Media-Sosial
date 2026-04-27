@@ -12,11 +12,11 @@
     #sosmed-app-wrapper {
       font-family: 'Inter', sans-serif;
       background-color: #f8fafc;
-      min-height: 80vh;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid #e2e8f0;
       position: relative;
+      /* Tinggi sekarang menyesuaikan konten secara otomatis (fleksibel) */
     }
     .app-tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
     .app-tab-content.active { display: block; opacity: 1; animation: slideUp 0.4s ease-out forwards; }
@@ -72,7 +72,7 @@
   </style>
 
   <!-- ================= LAYAR LOGIN ================= -->
-  <div id="login-view" class="flex items-center justify-center min-h-[600px] p-6 absolute inset-0 z-40 bg-slate-50 overflow-hidden">
+  <div id="login-view" class="flex flex-col items-center justify-center min-h-[600px] sm:min-h-[700px] py-12 px-4 relative z-40 bg-slate-50 overflow-hidden">
     <!-- Dekorasi Background Abstrak -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
       <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]"></div>
