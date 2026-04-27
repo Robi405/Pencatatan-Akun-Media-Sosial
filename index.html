@@ -700,6 +700,30 @@
 
     function closeEditModal() { document.getElementById('modal-edit').classList.remove('active'); }
 
+    // ================= FUNGSI SALIN DATA =================
+    function copyData(rowIndex, field, btnId) {
+      // Ambil data langsung dari state array berdasarkan rowIndex asli
+      const account = accountsData.find(a => a.rowIndex === rowIndex);
+      if(!account) return;
+      const textToCopy = account[field] || '';
+
+      // Eksekusi fungsi copy ke clipboard
+      const tempInput = document.createElement('textarea');
+      tempInput.value = textToCopy;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+
+      // Berikan efek visual (ubah ikon sementara menjadi tanda centang)
+      const btn = document.getElementById(btnId);
+      if(btn) {
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i>';
+        setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
+      }
+    }
+
     // ================= FETCH & SUBMIT DATA =================
 
     function submitForm(event, actionType) {
@@ -869,13 +893,31 @@
                 <span class="font-bold text-slate-800">${acc['Jenis Akun'] || '-'}</span>
               </div>
             </td>
-            <td class="px-6 py-4 font-medium text-slate-700">${acc['Nama Pemilik'] || '-'}</td>
-            <td class="px-6 py-4 text-slate-500">${acc['Email'] || '-'}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center group/item">
+                <span class="font-medium text-slate-700 mr-2">${acc['Nama Pemilik'] || '-'}</span>
+                <button onclick="copyData(${acc.rowIndex}, 'Nama Pemilik', 'copy-user-${index}')" id="copy-user-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none opacity-0 group-hover/item:opacity-100 transition-opacity" title="Salin Username">
+                  <i class="far fa-copy"></i>
+                </button>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center group/item">
+                <span class="text-slate-500 mr-2">${acc['Email'] || '-'}</span>
+                <button onclick="copyData(${acc.rowIndex}, 'Email', 'copy-email-${index}')" id="copy-email-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none opacity-0 group-hover/item:opacity-100 transition-opacity" title="Salin Email">
+                  <i class="far fa-copy"></i>
+                </button>
+              </div>
+            </td>
             <td class="px-6 py-4">
               <div class="flex items-center bg-slate-100 rounded-md px-2 py-1 w-fit border border-slate-200">
                 <input type="password" value="${acc['Kata Sandi'] || ''}" readonly class="bg-transparent border-none p-0 focus:ring-0 text-sm text-slate-600 w-20 outline-none font-mono tracking-wider" id="pass-td-${index}">
                 <button onclick="togglePasswordVisibility('pass-td-${index}', 'icon-td-${index}')" class="ml-2 text-slate-400 hover:text-indigo-600 focus:outline-none transition">
                   <i id="icon-td-${index}" class="fas fa-eye text-xs"></i>
+                </button>
+                <div class="w-px h-4 bg-slate-300 mx-2"></div>
+                <button onclick="copyData(${acc.rowIndex}, 'Kata Sandi', 'copy-pass-${index}')" id="copy-pass-${index}" class="text-slate-400 hover:text-indigo-600 focus:outline-none transition" title="Salin Password">
+                  <i class="far fa-copy text-xs"></i>
                 </button>
               </div>
             </td>
