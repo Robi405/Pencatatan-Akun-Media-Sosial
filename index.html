@@ -1,144 +1,893 @@
-// Nama-nama Sheet/Tab yang dibutuhkan aplikasi
-const SHEET_DATA = 'Akun Sosial Media';
-const SHEET_USERS = 'Pengguna App';
+<!-- 
+  UI MODERN & PROFESIONAL
+  Sistem Login Terintegrasi Google Sheets
+-->
+<div id="sosmed-app-wrapper" class="antialiased text-slate-800">
+  <!-- Load Tailwind CSS, FontAwesome, & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-// FUNGSI PINTAR: Mengecek dan membuat sheet secara otomatis
-function getOrCreateSheet(ss, sheetName, headers, columnWidths, defaultRowData = null) {
-  let sheet = ss.getSheetByName(sheetName);
-  
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(headers);
-    sheet.getRange(1, 1, 1, headers.length)
-         .setFontWeight('bold')
-         .setBackground('#f3f4f6')
-         .setFontColor('#1e293b');
+  <style>
+    #sosmed-app-wrapper {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      position: relative;
+      /* Tinggi sekarang menyesuaikan konten secara otomatis (fleksibel) */
+    }
+    .app-tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+    .app-tab-content.active { display: block; opacity: 1; animation: slideUp 0.4s ease-out forwards; }
     
-    if (columnWidths && columnWidths.length > 0) {
-      columnWidths.forEach((width, index) => {
-        sheet.setColumnWidth(index + 1, width);
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .loader-spinner {
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 2.5px solid currentColor;
+      width: 18px;
+      height: 18px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .loader-spinner.dark { border-color: rgba(0,0,0,0.1); border-top-color: #4f46e5; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Custom Scrollbar for tables */
+    .custom-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Inputs */
+    .input-modern {
+      @apply bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 transition-shadow;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 50; display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: all 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-content {
+      background: white; border-radius: 16px; width: 90%; max-width: 500px;
+      padding: 2rem; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+  </style>
+
+  <!-- ================= LAYAR LOGIN ================= -->
+  <div id="login-view" class="flex flex-col items-center justify-center min-h-[600px] sm:min-h-[700px] py-12 px-4 relative z-40 bg-slate-50 overflow-hidden">
+    <!-- Dekorasi Background Abstrak -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+      <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]"></div>
+      <div class="absolute bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-blue-600/5 blur-[100px]"></div>
+    </div>
+
+    <!-- Kartu Login Glassmorphism -->
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-8 sm:p-10 relative z-10 transform transition-all">
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/30 mb-5">
+          <i class="fas fa-shield-halved text-3xl"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Vault<span class="text-indigo-600 font-black">X</span></h2>
+        <p class="text-slate-500 text-sm mt-2">Akses pengelola kredensial aman Anda</p>
+      </div>
+
+      <div id="login-alert" class="hidden mb-5 p-4 rounded-xl text-sm text-center font-medium border"></div>
+
+      <form id="form-login" onsubmit="handleLogin(event)">
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
+            <div class="relative group">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                <i class="fas fa-user"></i>
+              </div>
+              <input type="text" id="loginUsername" required class="w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="Masukkan username admin">
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-semibold text-slate-700">Password</label>
+            </div>
+            <div class="relative group">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                <i class="fas fa-lock"></i>
+              </div>
+              <input type="password" id="loginPassword" required class="w-full pl-11 pr-11 py-3.5 bg-slate-50/50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="••••••••">
+              <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600 transition-colors" onclick="togglePasswordVisibility('loginPassword', 'iconLoginToggle')">
+                <i id="iconLoginToggle" class="fas fa-eye"></i>
+              </div>
+            </div>
+          </div>
+          <button type="submit" id="btn-login" class="w-full mt-2 text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-600/20 font-semibold rounded-xl text-sm px-5 py-4 text-center transition-all duration-300 shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 flex justify-center items-center">
+            Masuk ke Sistem <i class="fas fa-arrow-right ml-2 opacity-80"></i>
+          </button>
+        </div>
+      </form>
+      
+      <div class="mt-8 text-center flex flex-col items-center justify-center gap-3">
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+          <i class="fas fa-lock text-slate-300"></i> Terenkripsi & Terhubung ke Google Sheets
+        </div>
+        <button type="button" onclick="openConfigModal()" class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full mt-1 border border-indigo-100">
+          <i class="fas fa-cog"></i> Pengaturan URL Script
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= LAYAR APLIKASI UTAMA ================= -->
+  <div id="app-view" class="hidden min-h-[600px] flex flex-col relative z-10">
+    
+    <!-- Navbar Modern -->
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-20 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md">
+          <i class="fas fa-shield-halved text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">Vault<span class="text-indigo-600 font-black">X</span></h1>
+          <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Credential Manager</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openProfileModal()" class="text-sm font-medium text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-200 py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+          <i class="fas fa-user-cog"></i> <span class="hidden sm:inline">Akun</span>
+        </button>
+        <button onclick="handleLogout()" class="text-sm font-medium text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+          <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Keluar</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Navigasi Tab Pill -->
+    <div class="px-6 pt-6 pb-2">
+      <div class="flex space-x-2 p-1 bg-slate-100/80 rounded-xl overflow-x-auto custom-scroll border border-slate-200">
+        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </button>
+        <button onclick="switchTab('input')" id="btn-input" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
+          <i class="fas fa-plus-circle"></i> Input Baru
+        </button>
+        <button onclick="switchTab('list')" id="btn-list" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2">
+          <i class="fas fa-server"></i> Kelola Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Area Konten Utama -->
+    <div class="flex-1 p-6 relative">
+      
+      <!-- Notifikasi Alert -->
+      <div id="app-alert" class="hidden mb-6 p-4 rounded-xl text-sm font-medium shadow-sm flex items-center border"></div>
+
+      <!-- 1. DASHBOARD TAB -->
+      <div id="tab-dashboard" class="app-tab-content">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900">Ringkasan Kredensial</h3>
+            <p class="text-sm text-slate-500">Akses cepat ke akun tersimpan Anda</p>
+          </div>
+          
+          <div class="w-full sm:w-64">
+            <select id="filterPlatformDashboard" onchange="renderDashboard()" class="input-modern shadow-sm bg-white cursor-pointer">
+              <option value="Semua">Semua Platform</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="loading-dashboard" class="flex flex-col items-center justify-center py-16 text-indigo-500">
+          <div class="loader-spinner dark w-8 h-8 mb-4 border-[3px]"></div> 
+          <span class="text-sm font-medium text-slate-500">Sinkronisasi data aman...</span>
+        </div>
+
+        <div id="dashboard-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 hidden"></div>
+        
+        <div id="empty-dashboard" class="hidden text-center py-16 px-4 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+          <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+            <i class="fas fa-box-open text-2xl"></i>
+          </div>
+          <h4 class="text-slate-800 font-semibold">Tidak ada data</h4>
+          <p class="text-sm text-slate-500 mt-1">Belum ada akun yang sesuai dengan filter.</p>
+        </div>
+      </div>
+
+      <!-- 2. INPUT AKUN BARU TAB -->
+      <div id="tab-input" class="app-tab-content">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+          <div class="mb-6 pb-6 border-b border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900">Registrasi Akun Baru</h3>
+            <p class="text-sm text-slate-500">Simpan kredensial platform baru ke dalam sistem.</p>
+          </div>
+          
+          <form id="form-akun" onsubmit="submitForm(event, 'add')">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+              
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Platform / Jenis Akun <span class="text-red-500">*</span></label>
+                <select id="inputJenisAkun" required onchange="checkCustomPlatform('inputJenisAkun', 'containerManual')" class="input-modern cursor-pointer mb-2">
+                  <option value="" disabled selected>-- Pilih Platform --</option>
+                </select>
+                
+                <div id="containerManual" class="hidden relative animate-[fadeIn_0.3s_ease]">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-keyboard"></i></div>
+                  <input type="text" id="inputJenisAkunManual" class="input-modern pl-10 bg-indigo-50/50 border-indigo-200 focus:border-indigo-500" placeholder="Ketik nama platform (contoh: Discord)">
+                </div>
+              </div>
+
+              <div class="col-span-1">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username / Nama Pemilik <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-at"></i></div>
+                  <input type="text" id="inputNama" required class="input-modern pl-10" placeholder="@username">
+                </div>
+              </div>
+
+              <div class="col-span-1">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email Terdaftar <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-envelope"></i></div>
+                  <input type="text" id="inputEmail" required class="input-modern pl-10" placeholder="nama@email.com">
+                </div>
+              </div>
+
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi (Password) <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-key"></i></div>
+                  <input type="password" id="inputPassword" required class="input-modern pl-10 pr-10" placeholder="••••••••">
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600 transition" onclick="togglePasswordVisibility('inputPassword', 'iconTogglePassword')">
+                    <i id="iconTogglePassword" class="fas fa-eye"></i>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+              <button type="submit" id="btn-submit" class="w-full sm:w-auto text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 font-semibold rounded-lg text-sm px-6 py-2.5 shadow-sm transition-all flex items-center justify-center">
+                <i class="fas fa-cloud-arrow-up mr-2"></i> Simpan Kredensial
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 3. DAFTAR AKUN TAB -->
+      <div id="tab-list" class="app-tab-content">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          
+          <!-- Toolbars -->
+          <div class="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Manajemen Database</h3>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+               <select id="filterPlatformList" onchange="renderTable()" class="input-modern w-full sm:w-40 py-2 cursor-pointer shadow-sm">
+                <option value="Semua">Semua Platform</option>
+              </select>
+              <div class="relative w-full sm:w-56">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-search"></i></div>
+                <input type="text" id="filterNameList" onkeyup="renderTable()" class="input-modern pl-10 py-2 shadow-sm" placeholder="Cari akun...">
+              </div>
+              <button onclick="fetchData()" class="text-sm font-medium bg-white hover:bg-slate-50 text-slate-600 py-2 px-4 rounded-lg border border-slate-300 shadow-sm transition flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fas fa-arrows-rotate"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto custom-scroll">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+              <thead class="text-xs text-slate-500 uppercase bg-slate-50 font-semibold border-b border-slate-200">
+                <tr>
+                  <th scope="col" class="px-6 py-4">Platform</th>
+                  <th scope="col" class="px-6 py-4">Username</th>
+                  <th scope="col" class="px-6 py-4">Email</th>
+                  <th scope="col" class="px-6 py-4">Password</th>
+                  <th scope="col" class="px-6 py-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-body" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                    <div class="loader-spinner dark mb-3"></div><br>Menghubungkan ke server...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL EDIT AKUN -->
+  <div id="modal-edit" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-pen-to-square text-indigo-500 mr-2"></i> Update Kredensial</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="form-edit" onsubmit="submitForm(event, 'edit')">
+        <input type="hidden" id="editRowIndex">
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Akun</label>
+            <select id="editJenisAkun" onchange="checkCustomPlatform('editJenisAkun', 'editContainerManual')" required class="input-modern mb-2 cursor-pointer">
+              <!-- Opsi dinamis -->
+            </select>
+            <div id="editContainerManual" class="hidden relative">
+               <input type="text" id="editJenisAkunManual" class="input-modern bg-indigo-50/50 border-indigo-200" placeholder="Ketik nama platform...">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Username / Nama</label>
+            <input type="text" id="editNama" required class="input-modern">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+            <input type="text" id="editEmail" required class="input-modern">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+            <div class="relative">
+               <input type="password" id="editPassword" required class="input-modern pr-10">
+               <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-indigo-600" onclick="togglePasswordVisibility('editPassword', 'iconToggleEdit')">
+                  <i id="iconToggleEdit" class="fas fa-eye"></i>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-slate-100">
+          <button type="button" onclick="closeEditModal()" class="px-5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
+          <button type="submit" id="btn-submit-edit" class="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIGURASI URL -->
+  <div id="modal-config" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-link text-indigo-500 mr-2"></i> Pengaturan Database</h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="form-config" onsubmit="saveConfigURL(event)">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">URL Web App (Google Apps Script)</label>
+            <textarea id="inputScriptUrl" required rows="4" class="input-modern resize-none text-xs font-mono break-all" placeholder="https://script.google.com/macros/s/.../exec"></textarea>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed"><i class="fas fa-info-circle text-indigo-500"></i> Masukkan URL Apps Script Anda di sini. URL ini akan disimpan secara otomatis di memori browser perangkat ini (Local Storage).</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-slate-100">
+          <button type="button" onclick="closeConfigModal()" class="px-5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
+          <button type="submit" id="btn-submit-config" class="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
+            <i class="fas fa-save mr-2"></i> Simpan URL
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PENGATURAN AKUN LOGIN -->
+  <div id="modal-profile" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fas fa-user-shield text-indigo-500 mr-2"></i> Pengaturan Login</h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="form-profile" onsubmit="saveProfileConfig(event)">
+        <div class="space-y-4">
+          <div class="p-3 bg-blue-50 text-blue-700 rounded-lg text-xs mb-2">
+            <i class="fas fa-info-circle mr-1"></i> Data login baru akan langsung disimpan ke database. Anda akan menggunakan data ini untuk sesi login berikutnya.
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Username Baru</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-user"></i></div>
+              <input type="text" id="inputNewUser" required class="input-modern pl-10" placeholder="Ketik username baru">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Password Baru</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fas fa-lock"></i></div>
+              <input type="text" id="inputNewPass" required class="input-modern pl-10" placeholder="Ketik password baru">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-slate-100">
+          <button type="button" onclick="closeProfileModal()" class="px-5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition shadow-sm">Batal</button>
+          <button type="submit" id="btn-submit-profile" class="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm flex items-center">
+            <i class="fas fa-save mr-2"></i> Update Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // MENGAMBIL URL DARI LOCAL STORAGE
+    // ==========================================
+    let GOOGLE_SCRIPT_URL = localStorage.getItem('vaultx_script_url') || '';
+
+    let accountsData = [];
+    let dynamicPlatforms = ['Facebook', 'Instagram', 'Twitter/X', 'TikTok', 'LinkedIn', 'YouTube', 'Google/Gmail'];
+
+    // Cek status login saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+      const isLoggedIn = sessionStorage.getItem('vaultx_auth') === 'true';
+      if (isLoggedIn) {
+        showApp();
+      } else {
+        document.getElementById('login-view').classList.remove('hidden');
+      }
+    });
+
+    // ================= AUTENTIKASI =================
+    function handleLogin(e) {
+      e.preventDefault();
+      
+      if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.trim() === '') {
+        showLoginAlert('Silakan atur URL Google Apps Script terlebih dahulu di menu Pengaturan (Ikon Gir).', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-login');
+      const uInput = document.getElementById('loginUsername').value;
+      const pInput = document.getElementById('loginPassword').value;
+      
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loader-spinner mr-2"></div> Memverifikasi...';
+      btn.disabled = true;
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'login', username: uInput, password: pInput })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.status === 'success') {
+          sessionStorage.setItem('vaultx_auth', 'true');
+          sessionStorage.setItem('vaultx_auth_user', uInput); // Menyimpan sesi username aktif
+          showApp();
+        } else {
+          showLoginAlert(data.message, 'error');
+        }
+      })
+      .catch(err => showLoginAlert('Kesalahan jaringan / URL Script salah.', 'error'))
+      .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       });
     }
-    if (defaultRowData) {
-      sheet.appendRow(defaultRowData);
-    }
-  }
-  return sheet;
-}
 
-// Inisialisasi Database Dinamis
-function initDatabase() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetData = getOrCreateSheet(
-    ss, SHEET_DATA, ['Timestamp', 'Jenis Akun', 'Nama Pemilik', 'Email', 'Kata Sandi'], [150, 150, 150, 200, 150]
-  );
-  const sheetUsers = getOrCreateSheet(
-    ss, SHEET_USERS, ['Username', 'Password'], [200, 200], ['admin', 'admin123']
-  );
-  return { sheetData, sheetUsers };
-}
-
-// API POST
-function doPost(e) {
-  try {
-    const db = initDatabase(); 
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action;
-    
-    // --- PROSES LOGIN ---
-    if (action === 'login') {
-      const usersData = db.sheetUsers.getDataRange().getValues();
-      let isAuthenticated = false;
-      
-      for (let i = 1; i < usersData.length; i++) {
-        if (usersData[i][0] === data.username && usersData[i][1] === data.password) {
-          isAuthenticated = true;
-          break;
-        }
-      }
-      
-      if (isAuthenticated) return responseJSON('success', 'Login berhasil!');
-      else return responseJSON('error', 'Username atau Password salah!');
+    function handleLogout() {
+      sessionStorage.removeItem('vaultx_auth');
+      sessionStorage.removeItem('vaultx_auth_user');
+      document.getElementById('form-login').reset();
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('login-view').classList.add('animate-[fadeIn_0.3s_ease]');
     }
-    
-    // --- PROSES GANTI USERNAME & PASSWORD LOGIN ---
-    else if (action === 'change_auth') {
-      const usersData = db.sheetUsers.getDataRange().getValues();
-      let userRowIndex = -1;
+
+    function showLoginAlert(msg, type) {
+      const alertEl = document.getElementById('login-alert');
+      alertEl.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-100');
+      alertEl.classList.add('bg-red-50', 'text-red-600', 'border', 'border-red-100');
+      alertEl.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> ${msg}`;
+    }
+
+    function showApp() {
+      document.getElementById('login-view').classList.add('hidden');
+      const appView = document.getElementById('app-view');
+      appView.classList.remove('hidden');
+      appView.classList.add('animate-[fadeIn_0.5s_ease]');
       
-      // Cari baris user lama
-      for (let i = 1; i < usersData.length; i++) {
-        if (usersData[i][0] === data.oldUsername) {
-          userRowIndex = i + 1; // +1 karena array index mulai dari 0, baris sheet dari 1
-          break;
-        }
+      populatePlatformDropdowns();
+      switchTab('dashboard'); // Default tab
+    }
+
+    // ================= KONFIGURASI URL =================
+    function openConfigModal() {
+      document.getElementById('inputScriptUrl').value = GOOGLE_SCRIPT_URL;
+      document.getElementById('modal-config').classList.add('active');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('modal-config').classList.remove('active');
+    }
+
+    function saveConfigURL(e) {
+      e.preventDefault();
+      const newUrl = document.getElementById('inputScriptUrl').value.trim();
+      
+      if(newUrl) {
+        localStorage.setItem('vaultx_script_url', newUrl);
+        GOOGLE_SCRIPT_URL = newUrl;
+        closeConfigModal();
+        
+        // Tampilkan notifikasi hijau sukses
+        const alertEl = document.getElementById('login-alert');
+        alertEl.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'border-red-100');
+        alertEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
+        alertEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> URL berhasil disimpan! Silakan login.`;
       }
+    }
+
+    // ================= PENGATURAN AKUN LOGIN =================
+    function openProfileModal() {
+      document.getElementById('inputNewUser').value = sessionStorage.getItem('vaultx_auth_user') || '';
+      document.getElementById('inputNewPass').value = '';
+      document.getElementById('modal-profile').classList.add('active');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('modal-profile').classList.remove('active');
+    }
+
+    function saveProfileConfig(e) {
+      e.preventDefault();
+      const newU = document.getElementById('inputNewUser').value;
+      const newP = document.getElementById('inputNewPass').value;
+      const oldU = sessionStorage.getItem('vaultx_auth_user');
+
+      const btn = document.getElementById('btn-submit-profile');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<div class="loader-spinner mr-2"></div> Menyimpan...';
+      btn.disabled = true;
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'change_auth',
+          oldUsername: oldU,
+          newUsername: newU,
+          newPassword: newP
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.status === 'success') {
+          showAlert('Kredensial login berhasil diperbarui!', 'success');
+          sessionStorage.setItem('vaultx_auth_user', newU); // Update data user di sesi saat ini
+          closeProfileModal();
+        } else {
+          showAlert('Gagal: ' + data.message, 'error');
+        }
+      })
+      .catch(err => showAlert('Kesalahan Jaringan.', 'error'))
+      .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      });
+    }
+
+    // ================= UI & LOGIC APLIKASI =================
+
+    function populatePlatformDropdowns() {
+      const htmlOptions = dynamicPlatforms.map(p => `<option value="${p}">${p}</option>`).join('');
+      const baseFilter = `<option value="Semua">Semua Platform</option>` + htmlOptions;
+      const baseInput = `<option value="" disabled selected>-- Pilih Platform --</option>` + htmlOptions + `<option value="Lainnya_Manual" class="font-bold text-indigo-600">+ Lainnya (Ketik Manual)</option>`;
+
+      document.getElementById('filterPlatformDashboard').innerHTML = baseFilter;
+      document.getElementById('filterPlatformList').innerHTML = baseFilter;
+      document.getElementById('inputJenisAkun').innerHTML = baseInput;
+      document.getElementById('editJenisAkun').innerHTML = baseInput;
+    }
+
+    function checkCustomPlatform(selectId, containerId) {
+       const selectEl = document.getElementById(selectId);
+       const containerEl = document.getElementById(containerId);
+       const inputManual = containerEl.querySelector('input');
+       if (selectEl.value === 'Lainnya_Manual') {
+           containerEl.classList.remove('hidden');
+           inputManual.required = true;
+       } else {
+           containerEl.classList.add('hidden');
+           inputManual.required = false;
+           inputManual.value = '';
+       }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.app-tab-content').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('#btn-dashboard, #btn-input, #btn-list').forEach(el => {
+        el.className = "flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-white/50 transition-all whitespace-nowrap flex items-center justify-center gap-2";
+      });
+
+      document.getElementById('tab-' + tabId).classList.add('active');
+      const activeBtn = document.getElementById('btn-' + tabId);
+      activeBtn.className = "flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-indigo-700 bg-white shadow-sm border border-slate-200 transition-all whitespace-nowrap flex items-center justify-center gap-2";
+
+      if((tabId === 'dashboard' || tabId === 'list') && accountsData.length === 0) {
+        fetchData();
+      }
+    }
+
+    function showAlert(message, type) {
+      const alertEl = document.getElementById('app-alert');
+      alertEl.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-red-50', 'text-red-700', 'border-red-200');
       
-      if (userRowIndex !== -1) {
-        db.sheetUsers.getRange(userRowIndex, 1, 1, 2).setValues([[
-          data.newUsername,
-          data.newPassword
-        ]]);
-        return responseJSON('success', 'Akun login berhasil diperbarui!');
+      if(type === 'success') {
+        alertEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+        alertEl.innerHTML = `<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3"><i class="fas fa-check text-emerald-600"></i></div> ${message}`;
       } else {
-        return responseJSON('error', 'Gagal menemukan data akun yang lama.');
+        alertEl.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+        alertEl.innerHTML = `<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3"><i class="fas fa-exclamation-triangle text-red-600"></i></div> ${message}`;
+      }
+      setTimeout(() => alertEl.classList.add('hidden'), 4000);
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = "password";
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
       }
     }
-    
-    // --- PROSES TAMBAH DATA ---
-    else if (action === 'add') {
-      const timestamp = new Date().toLocaleString('id-ID');
-      db.sheetData.appendRow([timestamp, data.jenisAkun, data.namaPemilik, data.email, data.kataSandi]);
-      return responseJSON('success', 'Data kredensial berhasil disimpan!');
-    } 
-    // --- PROSES EDIT DATA ---
-    else if (action === 'edit') {
-      const rowIndex = data.rowIndex;
-      db.sheetData.getRange(rowIndex, 2, 1, 4).setValues([[data.jenisAkun, data.namaPemilik, data.email, data.kataSandi]]);
-      return responseJSON('success', 'Data kredensial berhasil diperbarui!');
-    } 
-    // --- PROSES HAPUS DATA ---
-    else if (action === 'delete') {
-      const rowIndex = data.rowIndex;
-      db.sheetData.deleteRow(rowIndex);
-      return responseJSON('success', 'Data kredensial berhasil dihapus!');
-    }
-    
-  } catch (error) {
-    return responseJSON('error', error.toString());
-  }
-}
 
-// API GET
-function doGet(e) {
-  try {
-    const db = initDatabase(); 
-    const data = db.sheetData.getDataRange().getValues();
-    const headers = data[0];
-    const result = [];
-    const platformsSet = new Set();
-    
-    if (data.length > 1) {
-      for (let i = 1; i < data.length; i++) {
-        let obj = { rowIndex: i + 1 };
-        for (let j = 0; j < headers.length; j++) {
-          obj[headers[j]] = data[i][j];
-        }
-        result.push(obj);
-        if(data[i][1]) platformsSet.add(data[i][1].trim());
+    function openEditModal(rowIndex) {
+      const account = accountsData.find(a => a.rowIndex === rowIndex);
+      if(!account) return;
+      
+      document.getElementById('editRowIndex').value = account.rowIndex;
+      document.getElementById('editNama').value = account['Nama Pemilik'];
+      document.getElementById('editEmail').value = account['Email'];
+      document.getElementById('editPassword').value = account['Kata Sandi'];
+      
+      const editSelect = document.getElementById('editJenisAkun');
+      if(dynamicPlatforms.includes(account['Jenis Akun'])) {
+         editSelect.value = account['Jenis Akun'];
+         checkCustomPlatform('editJenisAkun', 'editContainerManual');
+      } else {
+         editSelect.value = 'Lainnya_Manual';
+         checkCustomPlatform('editJenisAkun', 'editContainerManual');
+         document.getElementById('editJenisAkunManual').value = account['Jenis Akun'];
       }
+      document.getElementById('modal-edit').classList.add('active');
     }
-    
-    result.reverse(); 
-    return ContentService.createTextOutput(JSON.stringify({
-      status: 'success', data: result, platforms: Array.from(platformsSet)
-    })).setMimeType(ContentService.MimeType.JSON);
-    
-  } catch (error) {
-    return responseJSON('error', error.toString());
-  }
-}
 
-function responseJSON(status, message) {
-  return ContentService.createTextOutput(JSON.stringify({ status: status, message: message })).setMimeType(ContentService.MimeType.JSON);
-}
+    function closeEditModal() { document.getElementById('modal-edit').classList.remove('active'); }
+
+    // ================= FETCH & SUBMIT DATA =================
+
+    function submitForm(event, actionType) {
+      event.preventDefault();
+      
+      let btnSubmit, prefixId, payload;
+      if(actionType === 'add') { btnSubmit = document.getElementById('btn-submit'); prefixId = 'input'; } 
+      else { btnSubmit = document.getElementById('btn-submit-edit'); prefixId = 'edit'; }
+
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = `<div class="loader-spinner mr-2 ${actionType === 'add' ? '' : 'dark'}"></div> Menyimpan...`;
+      btnSubmit.disabled = true;
+
+      let jenisAkunFinal = document.getElementById(prefixId + 'JenisAkun').value;
+      if (jenisAkunFinal === 'Lainnya_Manual') jenisAkunFinal = document.getElementById(prefixId + 'JenisAkunManual').value;
+
+      payload = {
+        action: actionType,
+        jenisAkun: jenisAkunFinal,
+        namaPemilik: document.getElementById(prefixId + 'Nama').value,
+        email: document.getElementById(prefixId + 'Email').value,
+        kataSandi: document.getElementById(prefixId + 'Password').value
+      };
+
+      if(actionType === 'edit') payload.rowIndex = parseInt(document.getElementById('editRowIndex').value);
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.status === 'success') {
+          showAlert(data.message, 'success');
+          if(actionType === 'add') document.getElementById('form-akun').reset();
+          if(actionType === 'edit') closeEditModal();
+          fetchData(); 
+        } else showAlert(data.message, 'error');
+      })
+      .catch(err => showAlert('Kesalahan Jaringan.', 'error'))
+      .finally(() => { btnSubmit.innerHTML = originalText; btnSubmit.disabled = false; });
+    }
+
+    function deleteData(rowIndex) {
+      if(!confirm("Yakin ingin menghapus kredensial ini secara permanen?")) return;
+      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500"><div class="loader-spinner dark mr-2"></div> Menghapus data...</td></tr>`;
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'delete', rowIndex: rowIndex })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.status === 'success') { showAlert(data.message, 'success'); fetchData(); } 
+        else { showAlert(data.message, 'error'); renderTable(); }
+      }).catch(err => { showAlert('Terjadi kesalahan.', 'error'); renderTable(); });
+    }
+
+    function fetchData() {
+      if(GOOGLE_SCRIPT_URL === 'URL_GOOGLE_APPS_SCRIPT_ANDA_DISINI') return;
+
+      document.getElementById('loading-dashboard').classList.remove('hidden');
+      document.getElementById('dashboard-cards').classList.add('hidden');
+      document.getElementById('empty-dashboard').classList.add('hidden');
+      document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500"><div class="loader-spinner dark mb-3"></div><br>Mengambil data terbaru...</td></tr>`;
+
+      fetch(GOOGLE_SCRIPT_URL)
+        .then(res => res.json())
+        .then(result => {
+          if(result.status === 'success') {
+            accountsData = result.data || [];
+            if(result.platforms && result.platforms.length > 0) {
+               dynamicPlatforms = Array.from(new Set([...dynamicPlatforms, ...result.platforms]));
+            }
+            populatePlatformDropdowns();
+            renderDashboard();
+            renderTable();
+          } else showAlert(result.message, 'error');
+        })
+        .catch(err => {
+          document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500"><i class="fas fa-wifi text-xl mb-2 block"></i> Gagal terhubung ke server.</td></tr>`;
+          document.getElementById('loading-dashboard').classList.add('hidden');
+        });
+    }
+
+    // ================= RENDER UI =================
+
+    function getPlatformStyling(platform) {
+      platform = platform.toLowerCase();
+      if(platform.includes('facebook')) return { icon: 'fab fa-facebook-f', bg: 'bg-[#1877F2]/10', color: 'text-[#1877F2]' };
+      if(platform.includes('instagram')) return { icon: 'fab fa-instagram', bg: 'bg-[#E4405F]/10', color: 'text-[#E4405F]' };
+      if(platform.includes('twitter') || platform.includes('x')) return { icon: 'fab fa-twitter', bg: 'bg-[#1DA1F2]/10', color: 'text-[#1DA1F2]' };
+      if(platform.includes('tiktok')) return { icon: 'fab fa-tiktok', bg: 'bg-black/5', color: 'text-black' };
+      if(platform.includes('linkedin')) return { icon: 'fab fa-linkedin-in', bg: 'bg-[#0A66C2]/10', color: 'text-[#0A66C2]' };
+      if(platform.includes('youtube')) return { icon: 'fab fa-youtube', bg: 'bg-[#FF0000]/10', color: 'text-[#FF0000]' };
+      if(platform.includes('google')) return { icon: 'fab fa-google', bg: 'bg-[#EA4335]/10', color: 'text-[#EA4335]' };
+      if(platform.includes('github')) return { icon: 'fab fa-github', bg: 'bg-slate-200', color: 'text-slate-800' };
+      return { icon: 'fas fa-globe', bg: 'bg-indigo-100', color: 'text-indigo-600' }; // Default
+    }
+
+    function renderDashboard() {
+      document.getElementById('loading-dashboard').classList.add('hidden');
+      const container = document.getElementById('dashboard-cards');
+      const emptyState = document.getElementById('empty-dashboard');
+      const filterVal = document.getElementById('filterPlatformDashboard').value;
+      
+      container.innerHTML = '';
+      let filtered = (filterVal !== 'Semua') ? accountsData.filter(item => item['Jenis Akun'] === filterVal) : accountsData;
+
+      if(filtered.length === 0) {
+        container.classList.add('hidden'); emptyState.classList.remove('hidden'); return;
+      }
+
+      emptyState.classList.add('hidden'); container.classList.remove('hidden');
+
+      filtered.forEach(acc => {
+        const style = getPlatformStyling(acc['Jenis Akun'] || '');
+        container.innerHTML += `
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:border-indigo-200 transition-all duration-300 group">
+            <div class="flex items-center mb-5">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center ${style.bg} ${style.color} text-xl mr-4 group-hover:scale-110 transition-transform">
+                <i class="${style.icon}"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900 text-lg leading-tight">${acc['Jenis Akun']}</h4>
+                <p class="text-xs text-slate-400 font-medium">${acc['Timestamp'] ? acc['Timestamp'].split(' ')[0] : '-'}</p>
+              </div>
+            </div>
+            <div class="space-y-3 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div class="flex items-center">
+                <div class="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-slate-400 border border-slate-200 mr-3 shadow-sm"><i class="fas fa-at text-xs"></i></div>
+                <span class="font-semibold text-slate-700 truncate">${acc['Nama Pemilik'] || '-'}</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-slate-400 border border-slate-200 mr-3 shadow-sm"><i class="fas fa-envelope text-xs"></i></div>
+                <span class="font-medium text-slate-600 truncate text-sm">${acc['Email'] || '-'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      const filterP = document.getElementById('filterPlatformList').value;
+      const filterN = document.getElementById('filterNameList').value.toLowerCase();
+
+      let filtered = accountsData.filter(acc => {
+         const mP = (filterP === 'Semua') || (acc['Jenis Akun'] === filterP);
+         const mN = (acc['Nama Pemilik'] || '').toLowerCase().includes(filterN);
+         return mP && mN;
+      });
+
+      if(filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-10 text-center text-slate-500 bg-slate-50/50">Tidak ada data yang cocok.</td></tr>`; return;
+      }
+
+      filtered.forEach((acc, index) => {
+        const style = getPlatformStyling(acc['Jenis Akun'] || '');
+        tbody.innerHTML += `
+          <tr class="bg-white hover:bg-slate-50/80 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center ${style.bg} ${style.color} mr-3"><i class="${style.icon} text-sm"></i></div>
+                <span class="font-bold text-slate-800">${acc['Jenis Akun'] || '-'}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-700">${acc['Nama Pemilik'] || '-'}</td>
+            <td class="px-6 py-4 text-slate-500">${acc['Email'] || '-'}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center bg-slate-100 rounded-md px-2 py-1 w-fit border border-slate-200">
+                <input type="password" value="${acc['Kata Sandi'] || ''}" readonly class="bg-transparent border-none p-0 focus:ring-0 text-sm text-slate-600 w-20 outline-none font-mono tracking-wider" id="pass-td-${index}">
+                <button onclick="togglePasswordVisibility('pass-td-${index}', 'icon-td-${index}')" class="ml-2 text-slate-400 hover:text-indigo-600 focus:outline-none transition">
+                  <i id="icon-td-${index}" class="fas fa-eye text-xs"></i>
+                </button>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <button onclick="openEditModal(${acc.rowIndex})" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Edit"><i class="fas fa-pen text-xs"></i></button>
+                 <button onclick="deleteData(${acc.rowIndex})" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+  </script>
+</div>
